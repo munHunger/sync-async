@@ -73,17 +73,19 @@ export class Topic<T> {
    * @param filter a filter to get only messages matching the filter
    * @param cb the method to invoke when a message has been published to the topic matching filter
    */
-  publishAndWait<B>(
+  async publishAndWait<B>(
     message: Message<T>,
     topic: Topic<B>,
     filter: Partial<B>,
     cb: (data: B) => void
-  ) {
-    topic.filteredListeners.push({
-      filter,
-      fn: cb,
-    });
-    this.publish(message);
+  ): Promise<void> {
+    return new Promise((resolve, _) => {
+        topic.filteredListeners.push({
+        filter,
+        fn: data => resolve(cb(data)),
+        });
+        this.publish(message);
+    })
   }
 }
 class Message<T> {

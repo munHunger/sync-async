@@ -27,12 +27,11 @@ test("you can publish and wait for a specific response", async () => {
     console.log(`received data on topic1, publishing on topic2`)
     topic2.publish({ data: { b: "c" } });
   });
-  topic.publishAndWait(
+  await topic.publishAndWait(
     { data: { a: "b" } },
     topic2,
     { b: "c" },
     (v) => (data = v)
   );
-  await waitForCondition(() => data !== undefined, 100, 0);
   expect(data).toEqual({ data: { b: "c" } });
 });
