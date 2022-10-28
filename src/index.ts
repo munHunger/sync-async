@@ -16,6 +16,7 @@ export class Topic<T> {
     return newTopic;
   }
 
+  messages: Array<Message<T>> = []
   listeners: Array<(data: T) => void> = [];
   filteredListeners: Array<{ filter: Partial<T>; fn: (data: T) => void }> = [];
 
@@ -30,12 +31,30 @@ export class Topic<T> {
    * @param message the message to publish
    */
   publish(message: Message<any>) {
-    console.log("publishing data on topic " + this.name);
-    console.log(message);
-    this.listeners.forEach((l) => l.call({}, message));
-    //TODO: should do filtering and remove after use
+    this.messages.push(message);
+    console.log(`publishing ${JSON.stringify(message)} on ${this.name}`);
+    new Promise((resolve, reject) => {
+      console.log(`invoking ${this.listeners.length} normal listeners`);
+      this.listeners.forEach((l) => l.call({}, message));
+    });
 
-    this.filteredListeners.forEach((l) => l.fn.call({}, message));
+    new Promise((resolve, reject) => {
+      let matchFun = (v: { filter: Partial<T>; fn: (data: T) => void }) => {
+        let before = {};
+        Object.assign(before, message.data);
+        let after = {}
+        Object.assign(after, message.data, v.filter);
+        return JSON.stringify(before) === JSON.stringify(after)
+      }
+      let matches = this.filteredListeners.filter(matchFun);
+      this.filteredListeners = this.filteredListeners.filter(v => !matchFun(v));
+      console.log(
+        `invoking ${matches.length} filtered listeners`
+      );
+      matches.forEach((l) => {
+        l.fn.call({}, message);
+      });
+    });
   }
   /**
    * add a generic listener to the topic.
@@ -60,26 +79,16 @@ export class Topic<T> {
     filter: Partial<B>,
     cb: (data: B) => void
   ) {
-    this.publish(message);
     topic.filteredListeners.push({
       filter,
       fn: cb,
     });
+    this.publish(message);
   }
 }
 class Message<T> {
   data: T;
 }
-
-class Test {
-  a: string;
-}
-Topic.getTopic<Test>("test").listen((data) => {
-  //    console.log("got data on topic")
-  //    console.log(data)
-});
-
-Topic.getTopic<Test>("test").publish({ data: { a: "b" } });
 
 export default {
   Topic,

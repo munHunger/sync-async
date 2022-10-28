@@ -24,6 +24,7 @@ test("you can publish and wait for a specific response", async () => {
   let topic2 = Sync.Topic.getTopic<any>("test2b");
   let data: any;
   topic.listen((v) => {
+    console.log(`received data on topic1, publishing on topic2`)
     topic2.publish({ data: { b: "c" } });
   });
   topic.publishAndWait(
