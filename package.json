@@ -1,8 +1,9 @@
 {
-  "name": "sync-async",
+  "name": "@munhunger/sync-async",
   "version": "1.0.0",
   "description": "wait for async commands on a message bus",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "type": "module",
   "scripts": {
     "build": "tsc",
